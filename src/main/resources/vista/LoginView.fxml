@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.rrhh.controlador.LoginController" styleClass="root">
+    <VBox alignment="CENTER" spacing="14" maxWidth="340" maxHeight="-Infinity" styleClass="tarjeta">
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30" />
+        </padding>
+        <Label text="Sistema de Gestión de RRHH" styleClass="titulo-seccion" wrapText="true" />
+        <TextField fx:id="campoUsername" promptText="Usuario" />
+        <PasswordField fx:id="campoPassword" promptText="Contraseña" />
+        <Button text="Ingresar" styleClass="button-primario" onAction="#onIngresar" maxWidth="Infinity" />
+        <Label fx:id="labelError" styleClass="error-label" wrapText="true" />
+    </VBox>
+</StackPane>
