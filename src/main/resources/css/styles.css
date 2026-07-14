@@ -1,0 +1,102 @@
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f4f6f8;
+}
+
+.barra-lateral {
+    -fx-background-color: #1f2d3d;
+    -fx-padding: 16;
+    -fx-spacing: 6;
+    -fx-min-width: 220;
+}
+
+.barra-lateral .button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d7dee6;
+    -fx-alignment: CENTER_LEFT;
+    -fx-max-width: infinity;
+    -fx-padding: 10 14;
+    -fx-background-radius: 6;
+    -fx-font-size: 13px;
+}
+
+.barra-lateral .button:hover {
+    -fx-background-color: #32465c;
+    -fx-text-fill: white;
+}
+
+.barra-lateral .titulo {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 16 4;
+}
+
+.encabezado {
+    -fx-background-color: white;
+    -fx-padding: 12 20;
+    -fx-border-color: #e0e4e8;
+    -fx-border-width: 0 0 1 0;
+}
+
+.encabezado .label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #445;
+}
+
+.tarjeta {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 6, 0, 0, 1);
+}
+
+.titulo-seccion {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2d3d;
+}
+
+.kpi-valor {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f6feb;
+}
+
+.kpi-etiqueta {
+    -fx-font-size: 12px;
+    -fx-text-fill: #667;
+}
+
+.error-label {
+    -fx-text-fill: #c0392b;
+    -fx-font-size: 12px;
+}
+
+.exito-label {
+    -fx-text-fill: #1e8449;
+    -fx-font-size: 12px;
+}
+
+.button-primario {
+    -fx-background-color: #1f6feb;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+}
+
+.button-primario:hover {
+    -fx-background-color: #1a5fc4;
+}
+
+.button-peligro {
+    -fx-background-color: #c0392b;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 8 16;
+}
+
+.button-peligro:hover {
+    -fx-background-color: #a5301f;
+}
