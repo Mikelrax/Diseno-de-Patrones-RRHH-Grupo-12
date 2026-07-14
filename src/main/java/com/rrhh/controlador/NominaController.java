@@ -10,6 +10,7 @@ import com.rrhh.proxy.NominaServicioProxy;
 import com.rrhh.servicio.EmpleadoServicio;
 import com.rrhh.util.ExportadorJSON;
 import com.rrhh.util.NavegadorVistas;
+import com.rrhh.util.TareasFX;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -62,7 +63,6 @@ public class NominaController {
     private void initialize() {
         nominaServicio = new NominaServicioProxy(AppContext.getUsuarioActual());
 
-        comboEmpleado.setItems(FXCollections.observableArrayList(empleadoServicio.listarTodos()));
         comboMes.setItems(FXCollections.observableArrayList(
                 IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toList())));
         campoAnio.setText(String.valueOf(LocalDate.now().getYear()));
@@ -71,11 +71,21 @@ public class NominaController {
         colTipo.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTipo().name()));
         colMonto.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getMonto().toString()));
 
-        boolean puedeGenerar = AppContext.getUsuarioActual().tienePermiso(Permiso.GESTIONAR_NOMINA);
-        if (!puedeGenerar) {
-            comboEmpleado.setValue(AppContext.getUsuarioActual().getEmpleado());
-            comboEmpleado.setDisable(true);
-        }
+        cargarComboEmpleados();
+    }
+
+    private void cargarComboEmpleados() {
+        TareasFX.ejecutar(
+                empleadoServicio::listarTodos,
+                lista -> {
+                    comboEmpleado.setItems(FXCollections.observableArrayList(lista));
+                    boolean puedeGenerar = AppContext.getUsuarioActual().tienePermiso(Permiso.GESTIONAR_NOMINA);
+                    if (!puedeGenerar) {
+                        comboEmpleado.setValue(AppContext.getUsuarioActual().getEmpleado());
+                        comboEmpleado.setDisable(true);
+                    }
+                },
+                error -> mostrarMensaje("Error al cargar empleados: " + error.getMessage(), true));
     }
 
     @FXML

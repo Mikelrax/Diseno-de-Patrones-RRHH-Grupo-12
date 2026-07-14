@@ -5,6 +5,7 @@ import com.rrhh.main.AppContext;
 import com.rrhh.modelo.Solicitud;
 import com.rrhh.servicio.SolicitudServicio;
 import com.rrhh.util.NavegadorVistas;
+import com.rrhh.util.TareasFX;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -44,7 +45,10 @@ public class AprobacionController {
     }
 
     private void cargarTabla() {
-        tablaSolicitudes.setItems(FXCollections.observableArrayList(solicitudServicio.listarPendientes()));
+        TareasFX.ejecutar(
+                solicitudServicio::listarPendientes,
+                lista -> tablaSolicitudes.setItems(FXCollections.observableArrayList(lista)),
+                error -> mostrarMensaje("Error al cargar solicitudes: " + error.getMessage(), true));
     }
 
     @FXML

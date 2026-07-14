@@ -7,6 +7,7 @@ import com.rrhh.modelo.Solicitud;
 import com.rrhh.servicio.CalculadoraDiasHabiles;
 import com.rrhh.servicio.SolicitudServicio;
 import com.rrhh.util.NavegadorVistas;
+import com.rrhh.util.TareasFX;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -53,8 +54,10 @@ public class SolicitudController {
 
     private void cargarTabla() {
         Integer idEmpleado = AppContext.getUsuarioActual().getEmpleado().getId();
-        tablaSolicitudes.setItems(FXCollections.observableArrayList(
-                solicitudServicio.listarPorEmpleado(idEmpleado)));
+        TareasFX.ejecutar(
+                () -> solicitudServicio.listarPorEmpleado(idEmpleado),
+                lista -> tablaSolicitudes.setItems(FXCollections.observableArrayList(lista)),
+                error -> mostrarMensaje("Error al cargar solicitudes: " + error.getMessage(), true));
     }
 
     @FXML

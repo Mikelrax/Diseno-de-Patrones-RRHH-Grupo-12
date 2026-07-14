@@ -8,6 +8,7 @@ import com.rrhh.servicio.CargoServicio;
 import com.rrhh.servicio.DepartamentoServicio;
 import com.rrhh.servicio.EmpleadoServicio;
 import com.rrhh.util.NavegadorVistas;
+import com.rrhh.util.TareasFX;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -21,6 +22,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class EmpleadoController {
 
@@ -86,13 +88,24 @@ public class EmpleadoController {
         cargarTabla();
     }
 
+    private record CombosEmpleado(List<Departamento> departamentos, List<Cargo> cargos) {
+    }
+
     private void cargarCombos() {
-        comboDepartamento.setItems(FXCollections.observableArrayList(departamentoServicio.listarTodos()));
-        comboCargo.setItems(FXCollections.observableArrayList(cargoServicio.listarTodos()));
+        TareasFX.ejecutar(
+                () -> new CombosEmpleado(departamentoServicio.listarTodos(), cargoServicio.listarTodos()),
+                combos -> {
+                    comboDepartamento.setItems(FXCollections.observableArrayList(combos.departamentos()));
+                    comboCargo.setItems(FXCollections.observableArrayList(combos.cargos()));
+                },
+                error -> mostrarMensaje("Error al cargar departamentos/cargos: " + error.getMessage(), true));
     }
 
     private void cargarTabla() {
-        tablaEmpleados.setItems(FXCollections.observableArrayList(empleadoServicio.listarTodos()));
+        TareasFX.ejecutar(
+                empleadoServicio::listarTodos,
+                lista -> tablaEmpleados.setItems(FXCollections.observableArrayList(lista)),
+                error -> mostrarMensaje("Error al cargar empleados: " + error.getMessage(), true));
     }
 
     private void cargarEnFormulario(Empleado empleado) {

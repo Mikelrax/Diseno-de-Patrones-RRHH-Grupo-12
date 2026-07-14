@@ -10,6 +10,7 @@ import com.rrhh.servicio.DepartamentoServicio;
 import com.rrhh.servicio.EmpleadoServicio;
 import com.rrhh.servicio.SolicitudServicio;
 import com.rrhh.util.NavegadorVistas;
+import com.rrhh.util.TareasFX;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
@@ -40,18 +41,36 @@ public class DashboardController {
     private final DepartamentoServicio departamentoServicio = new DepartamentoServicio();
     private final SolicitudServicio solicitudServicio = new SolicitudServicio();
 
+    private record DatosDashboard(List<Empleado> empleados, List<Departamento> departamentos,
+                                   int solicitudesPendientes, List<Nomina> nominas) {
+    }
+
     @FXML
     private void initialize() {
-        List<Empleado> empleados = empleadoServicio.listarTodos();
-        List<Departamento> departamentos = departamentoServicio.listarTodos();
+        TareasFX.ejecutar(
+                () -> new DatosDashboard(
+                        empleadoServicio.listarTodos(),
+                        departamentoServicio.listarTodos(),
+                        solicitudServicio.listarPendientes().size(),
+                        new NominaServicioProxy(AppContext.getUsuarioActual()).listarTodas()),
+                this::mostrarDatos,
+                error -> mostrarError());
+    }
 
-        long activos = empleados.stream().filter(e -> e.getEstado() == EstadoEmpleado.ACTIVO).count();
+    private void mostrarDatos(DatosDashboard datos) {
+        long activos = datos.empleados().stream().filter(e -> e.getEstado() == EstadoEmpleado.ACTIVO).count();
         labelTotalEmpleados.setText(String.valueOf(activos));
-        labelTotalDepartamentos.setText(String.valueOf(departamentos.size()));
-        labelSolicitudesPendientes.setText(String.valueOf(solicitudServicio.listarPendientes().size()));
+        labelTotalDepartamentos.setText(String.valueOf(datos.departamentos().size()));
+        labelSolicitudesPendientes.setText(String.valueOf(datos.solicitudesPendientes()));
 
-        cargarGraficoDepartamentos(empleados);
-        cargarGraficoNomina();
+        cargarGraficoDepartamentos(datos.empleados());
+        cargarGraficoNomina(datos.nominas());
+    }
+
+    private void mostrarError() {
+        labelTotalEmpleados.setText("Error");
+        labelTotalDepartamentos.setText("Error");
+        labelSolicitudesPendientes.setText("Error");
     }
 
     private void cargarGraficoDepartamentos(List<Empleado> empleados) {
@@ -66,10 +85,7 @@ public class DashboardController {
                         .collect(Collectors.toList())));
     }
 
-    private void cargarGraficoNomina() {
-        NominaServicioProxy nominaServicio = new NominaServicioProxy(AppContext.getUsuarioActual());
-        List<Nomina> nominas = nominaServicio.listarTodas();
-
+    private void cargarGraficoNomina(List<Nomina> nominas) {
         Map<String, BigDecimal> totalPorPeriodo = new LinkedHashMap<>();
         for (Nomina nomina : nominas) {
             String periodo = nomina.getMes() + "/" + nomina.getAnio();

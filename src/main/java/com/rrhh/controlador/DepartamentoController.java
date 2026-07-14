@@ -5,6 +5,7 @@ import com.rrhh.modelo.Empleado;
 import com.rrhh.servicio.DepartamentoServicio;
 import com.rrhh.servicio.EmpleadoServicio;
 import com.rrhh.util.NavegadorVistas;
+import com.rrhh.util.TareasFX;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -58,12 +59,22 @@ public class DepartamentoController {
             }
         });
 
-        comboGerente.setItems(FXCollections.observableArrayList(empleadoServicio.listarTodos()));
+        cargarComboGerente();
         cargarTabla();
     }
 
+    private void cargarComboGerente() {
+        TareasFX.ejecutar(
+                empleadoServicio::listarTodos,
+                lista -> comboGerente.setItems(FXCollections.observableArrayList(lista)),
+                error -> mostrarMensaje("Error al cargar empleados: " + error.getMessage(), true));
+    }
+
     private void cargarTabla() {
-        tablaDepartamentos.setItems(FXCollections.observableArrayList(departamentoServicio.listarTodos()));
+        TareasFX.ejecutar(
+                departamentoServicio::listarTodos,
+                lista -> tablaDepartamentos.setItems(FXCollections.observableArrayList(lista)),
+                error -> mostrarMensaje("Error al cargar departamentos: " + error.getMessage(), true));
     }
 
     private void cargarEnFormulario(Departamento departamento) {
