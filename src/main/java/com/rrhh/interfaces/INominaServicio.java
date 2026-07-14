@@ -14,4 +14,6 @@ public interface INominaServicio {
     Nomina buscarNominaDelPeriodo(Empleado empleado, int mes, int anio);
 
     List<Nomina> historialDe(Empleado empleado);
+
+    List<Nomina> listarTodas();
 }

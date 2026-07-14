@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.rrhh.controlador.DashboardController" styleClass="root">
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="encabezado">
+            <Label text="Dashboard" styleClass="titulo-seccion" HBox.hgrow="ALWAYS" />
+            <Button text="Volver al menú" onAction="#onVolver" />
+        </HBox>
+    </top>
+    <center>
+        <VBox spacing="16">
+            <padding>
+                <Insets top="16" right="16" bottom="16" left="16" />
+            </padding>
+            <HBox spacing="30" styleClass="tarjeta">
+                <VBox alignment="CENTER">
+                    <Label fx:id="labelTotalEmpleados" styleClass="kpi-valor" />
+                    <Label text="Empleados activos" styleClass="kpi-etiqueta" />
+                </VBox>
+                <VBox alignment="CENTER">
+                    <Label fx:id="labelTotalDepartamentos" styleClass="kpi-valor" />
+                    <Label text="Departamentos" styleClass="kpi-etiqueta" />
+                </VBox>
+                <VBox alignment="CENTER">
+                    <Label fx:id="labelSolicitudesPendientes" styleClass="kpi-valor" />
+                    <Label text="Solicitudes pendientes" styleClass="kpi-etiqueta" />
+                </VBox>
+            </HBox>
+            <HBox spacing="16" VBox.vgrow="ALWAYS">
+                <PieChart fx:id="chartEmpleadosPorDepartamento" title="Empleados por departamento"
+                          HBox.hgrow="ALWAYS" />
+                <BarChart fx:id="chartNominaPorMes" title="Nómina neta por periodo" HBox.hgrow="ALWAYS">
+                    <xAxis>
+                        <CategoryAxis label="Periodo" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis label="Monto" />
+                    </yAxis>
+                </BarChart>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

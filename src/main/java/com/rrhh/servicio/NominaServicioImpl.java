@@ -73,4 +73,9 @@ public class NominaServicioImpl implements INominaServicio {
     public List<Nomina> historialDe(Empleado empleado) {
         return nominaDAO.listarPorEmpleado(empleado.getId());
     }
+
+    @Override
+    public List<Nomina> listarTodas() {
+        return nominaDAO.listarTodos();
+    }
 }

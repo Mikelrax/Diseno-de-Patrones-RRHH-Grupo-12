@@ -40,6 +40,12 @@ public class NominaServicioProxy implements INominaServicio {
         return servicioReal.historialDe(empleado);
     }
 
+    @Override
+    public List<Nomina> listarTodas() {
+        exigirPermiso(Permiso.VER_DASHBOARD);
+        return servicioReal.listarTodas();
+    }
+
     private void exigirAccesoANomina(Empleado empleado) {
         boolean esPropia = usuarioActual.getEmpleado().getId().equals(empleado.getId());
         boolean puedeVerTodas = usuarioActual.tienePermiso(Permiso.VER_NOMINA_TODOS);
