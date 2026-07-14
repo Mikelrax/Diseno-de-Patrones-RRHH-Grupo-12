@@ -18,8 +18,8 @@ public final class SchemaInitializer {
         String contenido = leerRecurso(recursoSql);
         String[] bloques = contenido.split(";");
 
-        Connection conexion = GestorConexionBD.obtenerInstancia().obtenerConexion();
-        try (Statement statement = conexion.createStatement()) {
+        try (Connection conexion = GestorConexionBD.obtenerInstancia().obtenerConexion();
+             Statement statement = conexion.createStatement()) {
             for (String bloque : bloques) {
                 String sql = limpiarComentarios(bloque).strip();
                 if (sql.isEmpty()) {
@@ -27,8 +27,6 @@ public final class SchemaInitializer {
                 }
                 statement.execute(sql);
             }
-        } finally {
-            GestorConexionBD.obtenerInstancia().liberarConexion(conexion);
         }
     }
 

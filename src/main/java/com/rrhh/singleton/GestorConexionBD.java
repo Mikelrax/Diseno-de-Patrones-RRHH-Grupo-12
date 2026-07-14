@@ -2,6 +2,10 @@ package com.rrhh.singleton;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -38,24 +42,33 @@ public final class GestorConexionBD {
     }
 
     public synchronized Connection obtenerConexion() throws SQLException {
-        Connection conexion = pool.poll();
-        while (conexion != null && conexion.isClosed()) {
-            conexion = pool.poll();
+        Connection real = pool.poll();
+        while (real != null && real.isClosed()) {
+            real = pool.poll();
         }
-        if (conexion == null) {
-            conexion = DriverManager.getConnection(url, usuario, password);
+        if (real == null) {
+            real = DriverManager.getConnection(url, usuario, password);
         }
-        return conexion;
+        return crearProxy(real);
     }
 
-    public synchronized void liberarConexion(Connection conexion) {
-        if (conexion == null) {
-            return;
-        }
+    /**
+     * Envuelve la conexión real en un proxy dinámico: el código cliente sigue usando
+     * try-with-resources normalmente, pero close() devuelve la conexión al pool
+     * en vez de cerrar el socket.
+     */
+    private Connection crearProxy(Connection real) {
+        return (Connection) Proxy.newProxyInstance(
+                Connection.class.getClassLoader(),
+                new Class<?>[] { Connection.class },
+                new ConexionProxyHandler(real));
+    }
+
+    private synchronized void liberarConexion(Connection real) {
         if (pool.size() < tamanoPool) {
-            pool.offer(conexion);
+            pool.offer(real);
         } else {
-            cerrarSilenciosamente(conexion);
+            cerrarSilenciosamente(real);
         }
     }
 
@@ -63,6 +76,38 @@ public final class GestorConexionBD {
         try {
             conexion.close();
         } catch (SQLException ignored) {
+        }
+    }
+
+    private final class ConexionProxyHandler implements InvocationHandler {
+        private final Connection real;
+        private boolean cerrada = false;
+
+        private ConexionProxyHandler(Connection real) {
+            this.real = real;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method metodo, Object[] args) throws Throwable {
+            switch (metodo.getName()) {
+                case "close":
+                    if (!cerrada) {
+                        cerrada = true;
+                        liberarConexion(real);
+                    }
+                    return null;
+                case "isClosed":
+                    return cerrada || real.isClosed();
+                default:
+                    if (cerrada) {
+                        throw new SQLException("La conexión ya fue devuelta al pool");
+                    }
+                    try {
+                        return metodo.invoke(real, args);
+                    } catch (InvocationTargetException e) {
+                        throw e.getCause();
+                    }
+            }
         }
     }
 }
