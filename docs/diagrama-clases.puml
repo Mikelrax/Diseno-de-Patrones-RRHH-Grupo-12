@@ -1,0 +1,292 @@
+@startuml DiagramaClasesRRHH
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide empty members
+
+package modelo {
+  abstract class Persona {
+    -id: Integer
+    -nombre: String
+    -apellido: String
+    -dni: String
+    -email: String
+    +{abstract} getTipoPersona(): String
+    +getNombreCompleto(): String
+  }
+
+  class Empleado {
+    -fechaNacimiento: LocalDate
+    -fechaContratacion: LocalDate
+    -salarioBase: BigDecimal
+    -estado: EstadoEmpleado
+    +calcularAntiguedadAnios(): int
+  }
+  Persona <|-- Empleado
+
+  class Departamento {
+    -nombre: String
+    -presupuesto: BigDecimal
+    -gerente: Empleado
+  }
+
+  class Cargo {
+    -nombre: String
+    -salarioMin: BigDecimal
+    -salarioMax: BigDecimal
+  }
+
+  class Contrato {
+    -tipoContrato: TipoContrato
+    -fechaInicio: LocalDate
+    -fechaFin: LocalDate
+    -salarioPactado: BigDecimal
+    -estado: EstadoContrato
+  }
+
+  abstract class Usuario implements interfaces.IAutenticable {
+    -username: String
+    -passwordHash: String
+    -activo: boolean
+    +{abstract} getPermisos(): Set<Permiso>
+    +{abstract} getMenuDisponible(): List<OpcionMenu>
+    +{abstract} getTipoUsuario(): TipoUsuario
+    +validarCredenciales(String): boolean
+  }
+  class UsuarioAdministrador
+  class UsuarioRRHH
+  class UsuarioGerente
+  class UsuarioEmpleado
+  Usuario <|-- UsuarioAdministrador
+  Usuario <|-- UsuarioRRHH
+  Usuario <|-- UsuarioGerente
+  Usuario <|-- UsuarioEmpleado
+  Usuario "1" --> "1" Empleado
+
+  abstract class Solicitud implements observer.ISujetoObservable {
+    -fechaInicio: LocalDate
+    -fechaFin: LocalDate
+    -diasHabilesCalculados: int
+    -estado: state.IEstadoSolicitud
+    +{abstract} getTipoSolicitud(): String
+    +aprobar(Empleado)
+    +rechazar(Empleado, String)
+    +cancelar()
+  }
+  class SolicitudVacaciones
+  Solicitud <|-- SolicitudVacaciones
+  Solicitud "*" --> "1" Empleado
+  Solicitud --> "1" state.IEstadoSolicitud
+
+  class Nomina {
+    -mes: int
+    -anio: int
+    -salarioBruto: BigDecimal
+    -totalBonificaciones: BigDecimal
+    -totalDeducciones: BigDecimal
+    -salarioNeto: BigDecimal
+  }
+  class DetalleNomina {
+    -tipo: TipoMovimientoNomina
+    -concepto: String
+    -monto: BigDecimal
+  }
+  Nomina "1" *-- "*" DetalleNomina
+  Nomina "*" --> "1" Empleado
+
+  class DiaFeriado {
+    -fecha: LocalDate
+    -nombre: String
+    -fijo: boolean
+  }
+}
+
+package interfaces {
+  interface IDao<T, ID> {
+    +guardar(T): T
+    +buscarPorId(ID): Optional<T>
+    +listarTodos(): List<T>
+    +actualizar(T)
+    +eliminar(ID)
+  }
+  interface IAutenticable
+  interface IProveedorFeriados {
+    +obtenerFeriados(int, String): List<DiaFeriado>
+    +esFeriado(LocalDate, String): boolean
+  }
+  interface INominaServicio
+  interface IEmpleadoServicio
+  interface ISolicitudServicio
+}
+
+package singleton {
+  class GestorConexionBD <<Singleton>> {
+    -{static} instancia: GestorConexionBD
+    +{static} obtenerInstancia(): GestorConexionBD
+    +obtenerConexion(): Connection
+    +liberarConexion(Connection)
+  }
+}
+
+package factory {
+  class UsuarioFactory <<Factory Method>> {
+    +{static} crear(TipoUsuario, ...): Usuario
+    +{static} crearNuevo(TipoUsuario, ...): Usuario
+  }
+  UsuarioFactory ..> modelo.Usuario : crea
+}
+
+package builder {
+  class NominaBuilder <<Builder>> {
+    +paraEmpleado(Empleado): NominaBuilder
+    +periodo(int, int): NominaBuilder
+    +sueldoBase(BigDecimal): NominaBuilder
+    +agregarBonificacion(String, BigDecimal): NominaBuilder
+    +agregarDeduccion(String, BigDecimal): NominaBuilder
+    +build(): Nomina
+  }
+  NominaBuilder ..> modelo.Nomina : construye
+}
+
+package decorator {
+  interface ICalculoSalario <<Decorator>> {
+    +calcular(): BigDecimal
+    +getDescripcion(): String
+  }
+  class SalarioBase
+  abstract class SalarioDecorator {
+    #envuelto: ICalculoSalario
+    #concepto: String
+    #monto: BigDecimal
+  }
+  class BonoProductividad
+  class BonoAntiguedad
+  class DeduccionSeguroSocial
+  class DeduccionImpuestoRenta
+  class DeduccionTardanzas
+
+  ICalculoSalario <|.. SalarioBase
+  ICalculoSalario <|.. SalarioDecorator
+  SalarioDecorator o-- ICalculoSalario
+  SalarioDecorator <|-- BonoProductividad
+  SalarioDecorator <|-- BonoAntiguedad
+  SalarioDecorator <|-- DeduccionSeguroSocial
+  SalarioDecorator <|-- DeduccionImpuestoRenta
+  SalarioDecorator <|-- DeduccionTardanzas
+}
+
+package adapter {
+  class NagerDateClient
+  class PublicHolidayDTO
+  class NagerDateAdapter <<Adapter>>
+  interfaces.IProveedorFeriados <|.. NagerDateAdapter
+  NagerDateAdapter --> NagerDateClient : adapta
+  NagerDateAdapter --> PublicHolidayDTO
+}
+
+package facade {
+  class ContratacionFacade <<Facade>>
+  class SolicitudFacade <<Facade>>
+  class NominaFacade <<Facade>>
+}
+
+package proxy {
+  class NominaServicioProxy <<Proxy>>
+  interfaces.INominaServicio <|.. proxy.NominaServicioProxy
+  proxy.NominaServicioProxy --> servicio.NominaServicioImpl : delega
+}
+
+package observer {
+  interface ISujetoObservable {
+    +agregarObservador(IObservador)
+    +removerObservador(IObservador)
+    +notificarObservadores()
+  }
+  interface IObservador {
+    +actualizar(Solicitud)
+  }
+  class NotificadorEmpleadoSolicitante
+  class NotificadorJefeDepartamento
+  class RegistradorAuditoria
+  IObservador <|.. NotificadorEmpleadoSolicitante
+  IObservador <|.. NotificadorJefeDepartamento
+  IObservador <|.. RegistradorAuditoria
+}
+
+package state {
+  interface IEstadoSolicitud <<State>> {
+    +aprobar(Solicitud)
+    +rechazar(Solicitud)
+    +cancelar(Solicitud)
+    +getNombreEstado(): String
+  }
+  class EstadoPendiente
+  class EstadoAprobada
+  class EstadoRechazada
+  class EstadoCancelada
+  IEstadoSolicitud <|.. EstadoPendiente
+  IEstadoSolicitud <|.. EstadoAprobada
+  IEstadoSolicitud <|.. EstadoRechazada
+  IEstadoSolicitud <|.. EstadoCancelada
+}
+
+package dao {
+  class EmpleadoDAO
+  class DepartamentoDAO
+  class CargoDAO
+  class UsuarioDAO
+  class ContratoDAO
+  class NominaDAO
+  class SolicitudDAO
+  class FeriadoCacheDAO
+  class LogAuditoriaDAO
+
+  interfaces.IDao <|.. EmpleadoDAO
+  interfaces.IDao <|.. DepartamentoDAO
+  interfaces.IDao <|.. CargoDAO
+  interfaces.IDao <|.. UsuarioDAO
+  interfaces.IDao <|.. ContratoDAO
+  interfaces.IDao <|.. NominaDAO
+  interfaces.IDao <|.. SolicitudDAO
+}
+
+package servicio {
+  class EmpleadoServicio
+  class DepartamentoServicio
+  class SolicitudServicio
+  class NominaServicioImpl
+  class CalculadoraDiasHabiles
+  class AutenticacionServicio
+  class CargoServicio
+
+  interfaces.IEmpleadoServicio <|.. EmpleadoServicio
+  interfaces.ISolicitudServicio <|.. SolicitudServicio
+  interfaces.INominaServicio <|.. NominaServicioImpl
+  CalculadoraDiasHabiles --> interfaces.IProveedorFeriados
+}
+
+package controlador {
+  class LoginController
+  class MenuPrincipalController
+  class EmpleadoController
+  class DepartamentoController
+  class NominaController
+  class SolicitudController
+  class AprobacionController
+  class DashboardController
+  class ReporteController
+}
+
+controlador.EmpleadoController --> servicio.EmpleadoServicio
+controlador.DepartamentoController --> servicio.DepartamentoServicio
+controlador.NominaController --> proxy.NominaServicioProxy
+controlador.SolicitudController --> facade.SolicitudFacade
+controlador.AprobacionController --> facade.SolicitudFacade
+controlador.DashboardController --> proxy.NominaServicioProxy
+
+facade.ContratacionFacade --> servicio.EmpleadoServicio
+facade.ContratacionFacade --> factory.UsuarioFactory
+facade.SolicitudFacade --> servicio.CalculadoraDiasHabiles
+facade.SolicitudFacade --> observer.IObservador
+facade.NominaFacade --> interfaces.INominaServicio
+
+@enduml
